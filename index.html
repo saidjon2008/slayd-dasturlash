@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CODEVERSE — How The Web Works</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+:root{--bg:#080a10;--fg:#f3f5fc;--muted:#9ba5b9;--line:#ffffff18;--cyan:#82f2ff;--violet:#a78bfa;--green:#a3f7c5;--ease:cubic-bezier(.2,.8,.2,1)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:Inter,Arial,sans-serif;overflow:hidden}
+button{font:inherit;color:inherit;cursor:pointer}
+button:focus-visible{outline:2px solid var(--cyan);outline-offset:4px}
+#bg{position:fixed;inset:0;z-index:-2;background:radial-gradient(ellipse at 15% 20%,#15335470,transparent 42%),radial-gradient(ellipse at 85% 80%,#40205d50,transparent 42%),#080a10}
+#bg:after{content:"";position:absolute;inset:0;background-image:linear-gradient(#ffffff06 1px,transparent 1px),linear-gradient(90deg,#ffffff06 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,black,transparent)}
+header{height:62px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 4.5%;position:relative;z-index:10;background:#080a10b9;backdrop-filter:blur(20px)}
+.logo{font-weight:900;letter-spacing:2px;font-size:13px}.logo b{color:var(--cyan)}
+.status,.mono,.eyebrow,.number{font-family:"Space Mono",monospace;font-size:10px;letter-spacing:1.5px}
+.status{color:var(--muted)}
+#progress{position:fixed;z-index:15;top:61px;left:0;height:2px;width:0;background:linear-gradient(90deg,var(--cyan),var(--violet),#ff9fd8);transition:width .8s var(--ease)}
+main{height:calc(100dvh - 126px);position:relative}
+.slide{position:absolute;inset:0;overflow-y:auto;padding:35px 7%;display:flex;align-items:center;visibility:hidden;opacity:0;transform:translateY(22px) scale(.985);filter:blur(5px);transition:opacity .6s var(--ease),transform .75s var(--ease),filter .6s,visibility .75s;pointer-events:none}
+.slide.active{visibility:visible;opacity:1;transform:none;filter:none;pointer-events:auto;z-index:2}
+.wrap{width:100%;max-width:1150px;margin:auto}
+.eyebrow{color:var(--cyan);margin-bottom:20px}
+h1{font-size:clamp(43px,7.5vw,100px);line-height:.99;letter-spacing:-.075em;margin:0;font-weight:900}
+h2{font-size:clamp(31px,4.5vw,57px);line-height:1.08;letter-spacing:-.055em;margin:0 0 18px}
+h3{font-size:17px;margin:0 0 10px}
+p{font-size:14px;color:var(--muted);line-height:1.85;margin:12px 0}
+.gradient{background:linear-gradient(100deg,#fff,var(--cyan) 45%,var(--violet));color:transparent;background-clip:text}
+.sub{max-width:650px;font-size:15px}
+.label{font-size:10px;font-family:"Space Mono",monospace;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
+.line{height:1px;background:var(--line);margin:23px 0}
+.reveal{opacity:0;transform:translateY(20px);filter:blur(4px)}
+.active .reveal{animation:reveal .8s var(--ease) forwards;animation-delay:var(--d,.1s)}
+@keyframes reveal{to{opacity:1;transform:none;filter:none}}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:42px;align-items:center}
+.panel{border:1px solid var(--line);border-radius:20px;background:linear-gradient(135deg,#ffffff0c,#ffffff03);box-shadow:inset 0 1px #ffffff0b,0 25px 80px #0002;backdrop-filter:blur(16px)}
+.pad{padding:24px}
+.btn{border:1px solid #ffffff24;border-radius:10px;padding:12px 16px;background:#ffffff09;font-size:12px;transition:transform .35s var(--ease),background .3s,border-color .3s}
+.btn:hover{background:#82f2ff12;border-color:#82f2ff75;transform:translateY(-2px)}
+.btn.primary{background:var(--cyan);color:#081017;border-color:var(--cyan);font-weight:800}
+.btn:active{transform:scale(.97)}
+.row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.heroVisual{height:330px;display:grid;place-items:center;position:relative;overflow:hidden}
+.orbit{position:absolute;width:230px;height:230px;border:1px solid #82f2ff4a;border-radius:50%;transform:rotateX(65deg);animation:spin 12s linear infinite}
+.orbit:nth-child(2){width:280px;height:280px;border-color:#a78bfa5a;animation-duration:18s;animation-direction:reverse}
+.orbit:nth-child(3){width:175px;height:175px;border-style:dashed;animation-duration:22s}
+@keyframes spin{to{transform:rotateX(65deg) rotateZ(360deg)}}
+.core{width:115px;height:115px;border:1px solid #ffffff80;border-radius:28px;background:linear-gradient(135deg,#197eb8,#7754d4);box-shadow:0 0 60px #418aff40;display:grid;place-items:center;font:700 30px "Space Mono";transform:rotate(-8deg);animation:float 5s ease-in-out infinite}
+@keyframes float{50%{transform:translateY(-13px) rotate(5deg)}}
+.pill{padding:7px 10px;border:1px solid var(--line);border-radius:30px;font-size:10px;color:#d7e5f8}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:13px;margin-top:24px}
+.info{border:1px solid var(--line);border-radius:15px;padding:20px;background:#ffffff04;min-width:0;transition:transform .45s var(--ease),border-color .4s}
+.info:hover{transform:translateY(-5px);border-color:#82f2ff66}
+.icon{font-size:25px;margin-bottom:17px}
+.info p{font-size:12px}
+.code{font:12px/2 "Space Mono",monospace;white-space:pre-wrap;overflow-wrap:anywhere;background:#05080e;border:1px solid #ffffff15;padding:20px;border-radius:14px;color:#c2d6ec}
+.cyan{color:var(--cyan)}.violet{color:var(--violet)}.green{color:var(--green)}.pink{color:#ff9fd8}
+.demoBrowser{overflow:hidden;background:#f1f4fa;color:#151a27;border-radius:15px;box-shadow:0 20px 65px #0005;transition:transform .7s var(--ease)}
+.browserTop{height:37px;display:flex;align-items:center;gap:5px;padding:0 12px;background:#e0e5ed}
+.browserTop i{width:8px;height:8px;border-radius:50%;background:#f17c8d}.browserTop i:nth-child(2){background:#eac56b}.browserTop i:nth-child(3){background:#69c89b}
+.browserContent{padding:20px;min-height:200px}
+.demoTitle{font-size:23px;font-weight:900;letter-spacing:-1px}
+.demoButton{border:0;border-radius:7px;padding:10px 14px;background:#3973f6;color:white;font-size:11px}
+.webCard{margin-top:14px;padding:15px;border-radius:10px;background:linear-gradient(120deg,#dce8ff,#e9ddff);transition:transform .5s}
+.miniLine{height:6px;border-radius:9px;background:#b5c6e8;margin-top:10px;width:75%}
+.miniLine:nth-child(3){width:50%}
+.stage{position:relative;min-height:290px;overflow:hidden}
+.node{position:absolute;width:116px;min-height:62px;display:grid;place-items:center;text-align:center;padding:9px;border-radius:12px;background:#111a29;border:1px solid #82f2ff5a;font-size:11px;z-index:2;transition:transform .6s var(--ease),background .5s,box-shadow .5s}
+.node small{display:block;color:var(--muted);font-size:9px;margin-top:4px}
+.node.hot{background:#123441;border-color:var(--cyan);box-shadow:0 0 35px #82f2ff20}
+.connector{position:absolute;height:1px;background:linear-gradient(90deg,#82f2ff10,#82f2ff);transform-origin:left;opacity:.7}
+.packet{position:absolute;width:8px;height:8px;border-radius:50%;background:var(--cyan);box-shadow:0 0 15px var(--cyan);z-index:3;animation:travel 2.5s linear infinite}
+@keyframes travel{0%{left:12%;top:50%;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:82%;top:50%;opacity:0}}
+.flowrow{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:20px}
+.flowstep{border:1px solid var(--line);padding:15px;border-radius:12px;background:#ffffff04}
+.flowstep strong{font:11px "Space Mono";color:var(--cyan)}
+.flowstep p{font-size:11px;margin-bottom:0}
+#codeOutput{margin-top:14px;min-height:50px;color:var(--green);font:11px/1.8 "Space Mono",monospace}
+#codeOutput span{display:block}
+.compare{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.compare .panel{padding:17px}
+.compare h3{font-size:13px}
+.compare p{font-size:11px}
+.barChart{height:180px;display:flex;align-items:end;gap:10px;padding:10px 0;border-bottom:1px solid var(--line)}
+.bar{flex:1;height:var(--h);border:0;border-radius:6px 6px 0 0;background:linear-gradient(0deg,#6850d5,#82f2ff);transform:scaleY(.03);transform-origin:bottom;transition:transform 1s var(--ease);padding:0}
+.active .bar{transform:scaleY(1)}
+.bar:hover{filter:brightness(1.3)}
+#chartExplain{min-height:50px}
+.terminal{font:12px/1.9 "Space Mono",monospace;background:#04070b;border:1px solid #ffffff15;padding:19px;border-radius:14px;min-height:200px}
+.terminal .prompt{color:var(--green)}
+.terminal .dim{color:#718198}
+.arch{display:grid;grid-template-columns:1fr 36px 1fr 36px 1fr;align-items:center;gap:5px;margin:22px 0}
+.archNode{padding:17px 8px;text-align:center;border:1px solid #82f2ff55;background:#82f2ff08;border-radius:13px;font-size:11px}
+.archArrow{text-align:center;color:var(--cyan);font-size:22px;animation:arrow 1.5s ease-in-out infinite}
+@keyframes arrow{50%{transform:translateX(4px);opacity:.5}}
+footer{height:64px;border-top:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 4.5%;background:#080a10c9;position:relative;z-index:10}
+#dots{display:flex;gap:6px;align-items:center}
+.dot{width:6px;height:6px;padding:0;border:0;border-radius:10px;background:#ffffff38;transition:width .4s,background .4s}
+.dot.active{width:23px;background:var(--cyan)}
+#counter{font:10px "Space Mono";color:var(--muted)}
+.videoArea{padding:12px}
+.videoArea video{width:100%;max-height:44vh;background:#02040a;border-radius:12px;display:block}
+.upload{display:inline-flex;margin-top:14px}
+.upload input{display:none}
+#videoPlaceholder{min-height:190px;display:grid;place-items:center;text-align:center;border:1px dashed #82f2ff45;border-radius:12px;background:radial-gradient(ellipse,#82f2ff0c,transparent)}
+.bigPlay{font-size:45px;color:var(--cyan)}
+@media(max-width:760px){
+ header{height:54px;padding:0 4%}#progress{top:53px}
+ main{height:calc(100dvh - 112px)}
+ .slide{padding:25px 5%}
+ .split{grid-template-columns:1fr;gap:22px}
+ .heroVisual{height:230px}.core{width:85px;height:85px;font-size:24px}
+ .orbit{width:175px;height:175px}.orbit:nth-child(2){width:210px;height:210px}
+ .grid3{grid-template-columns:1fr}
+ .info{padding:15px}.info p{font-size:12px}
+ .flowrow{grid-template-columns:1fr 1fr}
+ .stage{min-height:250px}
+ .node{width:95px;font-size:10px}
+ .arch{grid-template-columns:1fr 18px 1fr 18px 1fr}
+ .archNode{font-size:9px;padding:12px 3px}
+ footer{height:58px;padding:0 3%;gap:8px}
+ footer .btn{padding:9px;font-size:10px}
+ .status{display:none}
+ h1{letter-spacing:-.06em}
+}
+@media(prefers-reduced-motion:reduce){
+ *,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+<div id="bg"></div>
+<header>
+  <div class="logo">CODE<b>VERSE</b></div>
+  <div class="status">AN INTERACTIVE JOURNEY THROUGH DEVELOPMENT</div>
+  <div id="counter">01 / 10</div>
+</header>
+<div id="progress"></div>
+
+<main>
+<!-- 1 -->
+<section class="slide active">
+ <div class="wrap split">
+  <div>
+   <div class="eyebrow reveal">FROM AN IDEA TO A DIGITAL WORLD</div>
+   <h1 class="reveal" style="--d:.12s">THE ART OF<br><span class="gradient">CODING.</span></h1>
+   <p class="sub reveal" style="--d:.25s">Biz har kuni saytlar, ilovalar va raqamli xizmatlardan foydalanamiz. Ammo ularning ortida qanday tizim ishlaydi? Bugun shu dunyoning ichiga kiramiz.</p>
+   <div class="line reveal" style="--d:.35s"></div>
+   <div class="row reveal" style="--d:.45s">
+    <button class="btn primary" onclick="go(1)">Sayohatni boshlash ↗</button>
+    <span class="pill">10 ta interaktiv sahna</span>
+   </div>
+  </div>
+  <div class="panel heroVisual reveal" style="--d:.3s">
+   <div class="orbit"></div><div class="orbit"></div><div class="orbit"></div>
+   <div class="core">&lt;/&gt;</div>
+  </div>
+ </div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+ <div class="wrap">
+  <div class="eyebrow reveal">01 — UNDERSTANDING THE WEB</div>
+  <h2 class="reveal" style="--d:.1s">Dasturlash aslida <span class="gradient">nima?</span></h2>
+  <p class="sub reveal" style="--d:.2s">Dasturlash — kompyuterga muayyan vazifani qanday bajarishni aniq ko‘rsatmalar orqali tushuntirish jarayoni. Dasturchi faqat kod yozmaydi: u muammoni tahlil qiladi, yechim tuzadi, sinaydi va xatolarni tuzatadi.</p>
+  <div class="grid3">
+   <div class="info reveal" style="--d:.25s"><div class="icon">01 ◇</div><h3>Muammoni tushunish</h3><p>Foydalanuvchiga nima kerak? Dastur qaysi vazifani bajarishi kerak? Avval shu savollarga javob topiladi.</p></div>
+   <div class="info reveal" style="--d:.4s"><div class="icon">02 ⌘</div><h3>Algoritm va kod</h3><p>Yechim bosqichlarga bo‘linadi. Algoritm — bu vazifani bajarish tartibi, kod esa uni dasturlash tilida ifodalashdir.</p></div>
+   <div class="info reveal" style="--d:.55s"><div class="icon">03 ↗</div><h3>Sinash va natija</h3><p>Dastur ishga tushiriladi, natija tekshiriladi. Xato topilsa tuzatiladi va qayta sinovdan o‘tkaziladi.</p></div>
+  </div>
+  <div class="line"></div>
+  <p class="reveal" style="--d:.6s">Masalan, onlayn do‘konda «Sotib olish» tugmasi shunchaki rasm emas. U foydalanuvchi harakatini qabul qilib, buyurtma jarayonini boshlashi kerak.</p>
+ </div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+ <div class="wrap split">
+  <div>
+   <div class="eyebrow reveal">02 — THE STRUCTURE</div>
+   <h2 class="reveal" style="--d:.1s">HTML sahifaga <span class="gradient">shakl beradi.</span></h2>
+   <p class="reveal" style="--d:.2s">HTML — HyperText Markup Language. U veb-sahifadagi sarlavha, matn, rasm, havola va tugmalar kabi elementlarni belgilaydi. HTML dasturlash tili emas, balki belgilash tilidir.</p>
+   <div class="code reveal" style="--d:.3s"><span class="violet">&lt;h1&gt;</span>Salom, dunyo!<span class="violet">&lt;/h1&gt;</span>
+<span class="violet">&lt;p&gt;</span>Bu mening saytim.<span class="violet">&lt;/p&gt;</span>
+<span class="violet">&lt;button&gt;</span>Boshlash<span class="violet">&lt;/button&gt;</span></div>
+   <p class="reveal" style="--d:.4s">Koddagi teglar brauzerga qaysi elementni yaratish kerakligini bildiradi. O‘ng tomonda kodning sahifaga qanday aylanishini ko‘r.</p>
+  </div>
+  <div class="panel pad reveal" style="--d:.25s">
+   <div class="label">LIVE HTML RENDER</div>
+   <div class="line"></div>
+   <div class="demoBrowser">
+    <div class="browserTop"><i></i><i></i><i></i></div>
+    <div class="browserContent" id="htmlDemo">
+     <div class="demoTitle">Salom, dunyo!</div>
+     <p style="color:#58647b;font-size:12px">Bu mening saytim.</p>
+     <button class="demoButton">Boshlash</button>
+    </div>
+   </div>
+   <div class="row" style="margin-top:15px">
+    <button class="btn" onclick="htmlStage(1)">Sarlavha</button>
+    <button class="btn" onclick="htmlStage(2)">Matn</button>
+    <button class="btn" onclick="htmlStage(3)">Tugma</button>
+   </div>
+   <div id="htmlExplain" class="label" style="margin-top:16px;line-height:1.8">Elementni tanla — uning vazifasini ko‘r.</div>
+  </div>
+ </div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+ <div class="wrap">
+  <div class="eyebrow reveal">03 — THE VISUAL SYSTEM</div>
+  <h2 class="reveal" style="--d:.1s">CSS — rangdan ancha <span class="gradient">keng tushuncha.</span></h2>
+  <p class="sub reveal" style="--d:.2s">CSS — Cascading Style Sheets. U HTML elementlarining o‘lchami, joylashuvi, oraliqlari, shriftlari, chegaralari, moslashuvchanligi va harakatini boshqaradi.</p>
+  <div class="split" style="margin-top:25px">
+   <div class="panel pad reveal" style="--d:.3s">
+    <div class="label">CHANGE THE LAYOUT</div>
+    <div class="line"></div>
+    <div class="row">
+     <button class="btn" onclick="cssDemo('layout')">Joylashuv</button>
+     <button class="btn" onclick="cssDemo('type')">Tipografika</button>
+     <button class="btn" onclick="cssDemo('motion')">Transform</button>
+     <button class="btn" onclick="cssDemo('responsive')">Responsive</button>
+    </div>
+    <div class="demoBrowser" style="margin-top:20px">
+     <div class="browserTop"><i></i><i></i><i></i></div>
+     <div class="browserContent" id="cssDemo">
+      <div class="demoTitle">MY WEBSITE</div>
+      <div class="miniLine"></div><div class="miniLine"></div>
+      <div class="webCard"><strong>Content block</strong><p style="color:#505b70;font-size:11px">Sahifaning alohida elementi</p></div>
+     </div>
+    </div>
+   </div>
+   <div class="reveal" style="--d:.4s">
+    <h3 id="cssTitle">Joylashuv va tartib</h3>
+    <p id="cssText">CSS elementlarni yonma-yon yoki ustma-ust joylashtiradi. Flexbox va Grid yordamida murakkab sahifa tuzilmalari yaratiladi.</p>
+    <div class="code" id="cssCode">.container {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+}</div>
+    <p>Sinab ko‘r: chap tomondagi boshqaruvlarni bos. Kod va ko‘rinishdagi farqni kuzat.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+ <div class="wrap split">
+  <div>
+   <div class="eyebrow reveal">04 — LOGIC & INTERACTION</div>
+   <h2 class="reveal" style="--d:.1s">JavaScript sahifaga <span class="gradient">mantiq beradi.</span></h2>
+   <p class="reveal" style="--d:.2s">JavaScript — brauzerda ishlay oladigan dasturlash tili. U hodisalarni qabul qiladi, ma’lumotlarni qayta ishlaydi va sahifa elementlarini o‘zgartiradi.</p>
+   <p class="reveal" style="--d:.3s">Masalan, tugma bosilganda hodisa yuz beradi. Kod shu hodisaga javob qaytaradi va foydalanuvchi ko‘radigan natija o‘zgaradi.</p>
+   <div class="code reveal" style="--d:.4s"><span class="violet">button</span>.addEventListener(
+  <span class="green">'click'</span>, () => {
+    <span class="cyan">count++;</span>
+    updateScreen();
+  }
+);</div>
+   <p class="reveal" style="--d:.5s">Quyidagi demo tugmasini bosib, hodisa va natija o‘rtasidagi bog‘lanishni kuzat.</p>
+  </div>
+  <div class="panel pad reveal" style="--d:.25s">
+   <div class="label">INTERACTIVE DEMO</div>
+   <div class="line"></div>
+   <div class="demoBrowser">
+    <div class="browserTop"><i></i><i></i><i></i></div>
+    <div class="browserContent" style="text-align:center">
+     <p style="color:#59667b">Tugma necha marta bosildi?</p>
+     <div id="clickCount" style="font-size:64px;font-weight:900;letter-spacing:-4px">0</div>
+     <button class="demoButton" onclick="clickDemo()">+ Hisoblagichni oshirish</button>
+    </div>
+   </div>
+   <div id="codeOutput"><span>// Hodisa kutilmoqda...</span></div>
+   <button class="btn" onclick="resetDemo()">Qayta boshlash ↺</button>
+  </div>
+ </div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+ <div class="wrap">
+  <div class="eyebrow reveal">05 — FROM CODE TO PIXELS</div>
+  <h2 class="reveal" style="--d:.1s">Brauzer kodni qanday <span class="gradient">sahifaga aylantiradi?</span></h2>
+  <p class="sub reveal" style="--d:.2s">Brauzer HTMLni tahlil qilib DOM daraxtini, CSS qoidalaridan esa uslublar hisobini hosil qiladi. Keyin elementlarning joylashuvi aniqlanadi, tasvir chiziladi va kerak bo‘lsa qatlamlar ekranga chiqariladi.</p>
+  <div class="panel pad reveal" style="--d:.3s;margin-top:24px">
+   <div class="stage" id="browserFlow">
+    <div class="node" style="left:2%;top:35%" id="n1">HTML<small>Elementlar</small></div>
+    <div class="node" style="left:27%;top:35%" id="n2">DOM<small>Sahifa daraxti</small></div>
+    <div class="node" style="left:52%;top:35%" id="n3">Layout<small>Joylashuv hisobi</small></div>
+    <div class="node" style="left:77%;top:35%" id="n4">Pixels<small>Tayyor tasvir</small></div>
+    <div class="packet" id="flowPacket"></div>
+   </div>
+   <div class="row">
+    <button class="btn primary" onclick="playBrowserFlow()">Jarayonni ko‘rsat ↗</button>
+    <span id="flowExplain" class="label">Har bir bosqichni kuzatish uchun tugmani bos.</span>
+   </div>
+  </div>
+  <div class="flowrow">
+   <div class="flowstep reveal" style="--d:.35s"><strong>01 / PARSE</strong><p>HTML belgilaridan hujjat tuzilishi yaratiladi.</p></div>
+   <div class="flowstep reveal" style="--d:.43s"><strong>02 / STYLE</strong><p>CSS qoidalari elementlarga moslashtiriladi.</p></div>
+   <div class="flowstep reveal" style="--d:.51s"><strong>03 / LAYOUT</strong><p>O‘lchamlar va ekrandagi o‘rinlar hisoblanadi.</p></div>
+   <div class="flowstep reveal" style="--d:.59s"><strong>04 / PAINT</strong><p>Matn, shakl va ranglar ekranga chiziladi.</p></div>
+  </div>
+ </div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+ <div class="wrap split">
+  <div>
+   <div class="eyebrow reveal">06 — THE INTERNET JOURNEY</div>
+   <h2 class="reveal" style="--d:.1s">Sayt ochilganda <span class="gradient">nima sodir bo‘ladi?</span></h2>
+   <p class="reveal" style="--d:.2s">Brauzer manzilni oladi, domen nomi DNS orqali IP manzilga aniqlanishi mumkin, so‘ng serverga tarmoq so‘rovi yuboriladi. Server javob beradi, brauzer esa kelgan resurslarni qayta ishlaydi.</p>
+   <div class="line"></div>
+   <p class="reveal" style="--d:.3s">Bu soddalashtirilgan model. Haqiqiy saytlarda keshlash, CDN, xavfsizlik tekshiruvlari, API so‘rovlari va boshqa bosqichlar ham bo‘lishi mumkin.</p>
+   <button class="btn primary reveal" style="--d:.4s" onclick="playNetwork()">So‘rovni yuborish ↗</button>
+   <p id="networkExplain" class="reveal" style="--d:.45s">Tugmani bosib, so‘rov va javob yo‘lini ko‘r.</p>
+  </div>
+  <div class="panel pad reveal" style="--d:.3s">
+   <div class="label">REQUEST / RESPONSE</div>
+   <div class="stage" style="min-height:320px">
+    <div class="node" id="client" style="left:2%;top:14%">BRAUZER<small>Foydalanuvchi</small></div>
+    <div class="node" id="dns" style="right:2%;top:14%">DNS<small>Domen → IP</small></div>
+    <div class="node" id="internet" style="left:35%;top:42%">NETWORK<small>So‘rov yo‘li</small></div>
+    <div class="node" id="server" style="right:2%;bottom:5%">SERVER<small>Javob qaytaradi</small></div>
+    <div class="node" id="page" style="left:2%;bottom:5%">WEB PAGE<small>Natija</small></div>
+    <div class="packet" id="netPacket" style="display:none"></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+ <div class="wrap">
+  <div class="eyebrow reveal">07 — DATA BECOMES A STORY</div>
+  <h2 class="reveal" style="--d:.1s">Grafika — bu <span class="gradient">ma’lumotning tili.</span></h2>
+  <p class="sub reveal" style="--d:.2s">Grafika faqat rang yoki bezak emas. U murakkab ma’lumotlarni ko‘rish, solishtirish va tushunishni osonlashtiradi. Grafik elementning shakli, o‘lchami, joylashuvi va harakati ma’no yetkazishi mumkin.</p>
+  <div class="split" style="margin-top:22px">
+   <div class="panel pad reveal" style="--d:.3s">
+    <div class="label">SAMPLE PROJECT ACTIVITY</div>
+    <div class="barChart">
+     <button class="bar" style="--h:32%" onclick="chartDemo(1,32)"></button>
+     <button class="bar" style="--h:51%" onclick="chartDemo(2,51)"></button>
+     <button class="bar" style="--h:43%" onclick="chartDemo(3,43)"></button>
+     <button class="bar" style="--h:75%" onclick="chartDemo(4,75)"></button>
+     <button class="bar" style="--h:61%" onclick="chartDemo(5,61)"></button>
+     <button class="bar" style="--h:92%" onclick="chartDemo(6,92)"></button>
+    </div>
+    <p id="chartExplain">Ustunlardan birini tanla. Bu — namoyish uchun yaratilgan namunaviy ma’lumot.</p>
+   </div>
+   <div class="reveal" style="--d:.4s">
+    <div class="info"><h3>Ma’lumotlar vizualizatsiyasi</h3><p>Jadvallar va grafiklar sonlar orasidagi farqni tez anglashga yordam beradi. Masalan, savdo ko‘rsatkichlari yoki sayt tashriflari.</p></div>
+    <div class="info" style="margin-top:12px"><h3>Interfeys grafikasi</h3><p>Ikonlar, menyular, diagrammalar, xaritalar va boshqaruv elementlari foydalanuvchiga tizimni tushunish va boshqarishga yordam beradi.</p></div>
+    <div class="info" style="margin-top:12px"><h3>Harakatli grafika</h3><p>Animatsiya holat o‘zgarganini ko‘rsatadi: yuklanish, muvaffaqiyatli bajarilish yoki elementlar orasidagi munosabat.</p></div>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+ <div class="wrap">
+  <div class="eyebrow reveal">08 — BUILD THE PRODUCT</div>
+  <h2 class="reveal" style="--d:.1s">Uch texnologiya. <span class="gradient">Bitta loyiha.</span></h2>
+  <p class="sub reveal" style="--d:.2s">Haqiqiy veb-loyihada HTML, CSS va JavaScript alohida vazifalarni bajaradi. Ular birgalikda foydalanuvchi ko‘radigan va boshqaradigan mahsulotni yaratadi.</p>
+  <div class="arch reveal" style="--d:.3s">
+   <div class="archNode"><strong>HTML</strong><p>Struktura</p></div><div class="archArrow">+</div>
+   <div class="archNode"><strong>CSS</strong><p>Ko‘rinish</p></div><div class="archArrow">+</div>
+   <div class="archNode"><strong>JS</strong><p>Mantiq</p></div>
+  </div>
+  <div class="split">
+   <div class="panel pad reveal" style="--d:.4s">
+    <div class="label">LIVE PRODUCT DEMO</div>
+    <div class="demoBrowser" style="margin-top:15px">
+     <div class="browserTop"><i></i><i></i><i></i></div>
+     <div class="browserContent" id="productDemo">
+      <div class="demoTitle">FOCUS TASKS</div>
+      <p style="font-size:11px;color:#65718a">Kichik vazifalar, aniq natijalar.</p>
+      <div class="webCard" style="display:flex;justify-content:space-between;align-items:center">
+       <span style="font-size:12px">HTMLni o‘rganish</span>
+       <button class="demoButton" onclick="toggleTask(this)">Bajarildi?</button>
+      </div>
+      <div class="webCard" style="display:flex;justify-content:space-between;align-items:center">
+       <span style="font-size:12px">CSSni mashq qilish</span>
+       <button class="demoButton" onclick="toggleTask(this)">Bajarildi?</button>
+      </div>
+     </div>
+    </div>
+   </div>
+   <div class="reveal" style="--d:.5s">
+    <h3>Natija qanday hosil bo‘ldi?</h3>
+    <p><b style="color:var(--cyan)">HTML</b> — vazifalar ro‘yxati va tugmalarni yaratdi.</p>
+    <p><b style="color:var(--violet)">CSS</b> — ularni kartochkalar, oraliqlar va shriftlar bilan tartibga soldi.</p>
+    <p><b style="color:var(--green)">JavaScript</b> — tugma bosilganda vazifaning holatini o‘zgartirdi.</p>
+    <div class="line"></div>
+    <p>Bu kichik misol kattaroq tizimlarning asosiy tamoyilini ko‘rsatadi. Haqiqiy mahsulotga foydalanuvchi hisoblari, server va ma’lumotlar bazasi ham kerak bo‘lishi mumkin.</p>
+   </div>
+  </div>
+ </div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+ <div class="wrap">
+  <div class="eyebrow reveal">09 — YOUR STORY CONTINUES</div>
+  <h2 class="reveal" style="--d:.1s">Koddan tashqarida — <span class="gradient">sening hikoyang.</span></h2>
+  <p class="sub reveal" style="--d:.2s">Dasturchilikning mohiyati faqat sintaksisni bilish emas. Bu fikrlash, muammoni yechish, yangi narsalarni sinash va g‘oyani ishlaydigan mahsulotga aylantirishdir.</p>
+  <div class="panel videoArea reveal" style="--d:.3s;margin-top:25px">
+   <div id="videoPlaceholder">
+    <div class="bigPlay">▷</div>
+    <h3>YOUR VIDEO / FINAL PRESENTATION</h3>
+    <p>Videongni shu yerdan tanla. U yakuniy sahnada namoyish etiladi.</p>
+   </div>
+   <video id="finalVideo" controls playsinline hidden></video>
+   <div class="row" style="justify-content:center">
+    <label class="btn primary upload">Videoni tanlash
+     <input type="file" id="videoInput" accept="video/*">
+    </label>
+    <button class="btn" onclick="go(0)">Boshidan ko‘r ↺</button>
+   </div>
+  </div>
+  <div class="row reveal" style="--d:.45s;justify-content:space-between;margin-top:22px">
+   <span class="pill">THINK · BUILD · TEST · IMPROVE</span>
+   <span class="label">THE WEB IS BUILT BY PEOPLE WHO CREATE.</span>
+  </div>
+ </div>
+</section>
+</main>
+
+<footer>
+ <button class="btn" id="prev" onclick="go(index-1)">← Orqaga</button>
+ <div id="dots"></div>
+ <button class="btn primary" id="next" onclick="go(index+1)">Keyingi →</button>
+ <button class="btn" onclick="fullscreen()">⛶</button>
+</footer>
+
+<script>
+let index=0;
+const slides=[...document.querySelectorAll('.slide')];
+const dotsBox=document.getElementById('dots');
+slides.forEach((_,i)=>{
+ const b=document.createElement('button');
+ b.className='dot'+(i===0?' active':'');
+ b.title='Slayd '+(i+1);
+ b.setAttribute('aria-label','Slayd '+(i+1));
+ b.onclick=()=>go(i);
+ dotsBox.appendChild(b);
+});
+const dots=[...dotsBox.children];
+
+function go(n){
+ index=Math.max(0,Math.min(slides.length-1,n));
+ slides.forEach((s,i)=>{
+  s.classList.toggle('active',i===index);
+  if(i===index)s.scrollTop=0;
+ });
+ dots.forEach((d,i)=>d.classList.toggle('active',i===index));
+ document.getElementById('counter').textContent=
+  String(index+1).padStart(2,'0')+' / '+String(slides.length).padStart(2,'0');
+ document.getElementById('progress').style.width=((index+1)/slides.length*100)+'%';
+ document.getElementById('prev').disabled=index===0;
+ document.getElementById('next').textContent=index===slides.length-1?'Tugadi ✓':'Keyingi →';
+}
+document.addEventListener('keydown',e=>{
+ if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();go(index+1)}
+ if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();go(index-1)}
+ if(e.key==='Home')go(0);
+ if(e.key==='End')go(slides.length-1);
+});
+async function fullscreen(){
+ try{
+  if(!document.fullscreenElement)await document.documentElement.requestFullscreen();
+  else await document.exitFullscreen();
+ }catch(e){alert('Brauzer menyusidan to‘liq ekran rejimini yoq.')}
+}
+
+// HTML sahifa elementlari
+function htmlStage(n){
+ const explanations={
+  1:'H1 — sahifaning asosiy sarlavhasi. HTML elementning ma’nosini belgilaydi.',
+  2:'P — matn paragrafi. Brauzer uni alohida matn bloki sifatida ko‘rsatadi.',
+  3:'BUTTON — foydalanuvchi bosishi mumkin bo‘lgan boshqaruv elementi.'
+ };
+ const demo=document.getElementById('htmlDemo');
+ demo.innerHTML='';
+ if(n===1)demo.innerHTML='<div class="demoTitle">Salom, dunyo!</div>';
+ if(n===2)demo.innerHTML='<p style="color:#58647b;font-size:12px">Bu mening saytim.</p>';
+ if(n===3)demo.innerHTML='<button class="demoButton" onclick="this.textContent=\'Bosildi!\'">Boshlash</button>';
+ demo.animate([{opacity:.2,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:450,easing:'ease-out'});
+ document.getElementById('htmlExplain').textContent=explanations[n];
+}
+
+// CSS jonli laboratoriyasi
+function cssDemo(mode){
+ const el=document.getElementById('cssDemo');
+ const title=document.getElementById('cssTitle');
+ const text=document.getElementById('cssText');
+ const code=document.getElementById('cssCode');
+ el.style.cssText='transition:all .6s cubic-bezier(.2,.8,.2,1);';
+ const settings={
+  layout:{
+   title:'Joylashuv va oraliqlar',
+   text:'Grid va Flexbox elementlarni tartib bilan joylashtiradi. Gap elementlar orasidagi masofani, padding esa ichki bo‘shliqni belgilaydi.',
+   code:'.container {\n  display: grid;\n  gap: 16px;\n  padding: 24px;\n}',
+   css:'display:grid;gap:20px;padding:30px;background:#e4ebfa;transform:translateY(-3px)'
+  },
+  type:{
+   title:'Tipografika',
+   text:'Shrift turi, o‘lchami, qalinligi va qator balandligi matnning o‘qilishini belgilaydi. Tipografika — interfeys dizaynining muhim qismi.',
+   code:'.title {\n  font-size: 28px;\n  font-weight: 800;\n  letter-spacing: -1px;\n}',
+   css:'font-family:Georgia,serif;letter-spacing:1px;padding:24px;background:#e9ddff'
+  },
+  motion:{
+   title:'Transform va animatsiya',
+   text:'Transform elementni siljitishi, aylantirishi yoki kattalashtirishi mumkin. Transition esa holatlar o‘rtasidagi o‘zgarishni silliqlashtiradi.',
+   code:'.card {\n  transition: transform .5s;\n}\n.card:hover {\n  transform: translateY(-8px);\n}',
+   css:'transform:rotate(-2deg) scale(1.03);padding:25px;background:#d7f5f1;border-radius:24px;box-shadow:0 20px 30px #0002'
+  },
+  responsive:{
+   title:'Responsive dizayn',
+   text:'Responsive dizayn sahifani telefon, planshet va kompyuter ekranlariga moslashtiradi. Media query orqali turli ekranlar uchun boshqa qoidalar yoziladi.',
+   code:'@media (max-width: 600px) {\n  .container {\n    grid-template-columns: 1fr;\n  }\n}',
+   css:'max-width:235px;margin:auto;padding:12px;font-size:12px;background:#fff0d5;border-radius:8px'
+  }
+ };
+ const s=settings[mode];
+ title.textContent=s.title;
+ text.textContent=s.text;
+ code.textContent=s.code;
+ el.style.cssText+=s.css;
+ el.animate([{opacity:.35,transform:'translateY(8px)'},{opacity:1,transform:'none'}],{duration:450,easing:'ease-out'});
+}
+
+// JavaScript hisoblagichi
+let clicks=0;
+function clickDemo(){
+ clicks++;
+ document.getElementById('clickCount').textContent=clicks;
+ document.getElementById('codeOutput').innerHTML=
+  '<span class="dim">// Click hodisasi qabul qilindi</span>'+
+  '<span>count = '+clicks+';</span>'+
+  '<span class="green">updateScreen() → ekrandagi son yangilandi</span>';
+ document.getElementById('clickCount').animate(
+  [{transform:'scale(.8)',opacity:.5},{transform:'scale(1)',opacity:1}],
+  {duration:280,easing:'cubic-bezier(.2,.8,.2,1)'});
+}
+function resetDemo(){
+ clicks=0;
+ document.getElementById('clickCount').textContent='0';
+ document.getElementById('codeOutput').innerHTML='<span>// Hisoblagich qayta boshlandi</span>';
+}
+
+// Brauzer bosqichlari
+let browserTimer;
+function playBrowserFlow(){
+ clearTimeout(browserTimer);
+ const nodes=[1,2,3,4].map(n=>document.getElementById('n'+n));
+ const labels=[
+  'Brauzer HTML matnini oladi va teglarni tahlil qiladi.',
+  'DOM — sahifadagi elementlarning daraxt ko‘rinishidagi modeli yaratiladi.',
+  'Layout bosqichida elementlarning o‘lchami va ekrandagi joyi hisoblanadi.',
+  'Paint bosqichida matn, rang va shakllar ekranga chiziladi.'
+ ];
+ nodes.forEach(n=>n.classList.remove('hot'));
+ let i=0;
+ function next(){
+  nodes.forEach(n=>n.classList.remove('hot'));
+  nodes[i].classList.add('hot');
+  document.getElementById('flowExplain').textContent=labels[i];
+  const packet=document.getElementById('flowPacket');
+  packet.style.animation='none';
+  packet.style.left=(2+i*25)+'%';
+  packet.style.top='50%';
+  packet.offsetHeight;
+  packet.style.animation='travel 1s linear';
+  i++;
+  if(i<nodes.length)browserTimer=setTimeout(next,1500);
+ }
+ next();
+}
+
+// Tarmoq so‘rovi
+let netTimer;
+function playNetwork(){
+ clearTimeout(netTimer);
+ const ids=['client','dns','internet','server','page'];
+ const labels=[
+  '1. Brauzer sayt manzilini tayyorlaydi.',
+  '2. DNS domen nomiga mos IP manzilni topishga yordam beradi.',
+  '3. So‘rov tarmoq orqali server tomon yo‘naladi.',
+  '4. Server so‘rovni qayta ishlab javob yuboradi.',
+  '5. Brauzer javobni qayta ishlab sahifani ko‘rsatadi.'
+ ];
+ const nodes=ids.map(id=>document.getElementById(id));
+ const packet=document.getElementById('netPacket');
+ packet.style.display='block';
+ let i=0;
+ function next(){
+  nodes.forEach(n=>n.classList.remove('hot'));
+  nodes[i].classList.add('hot');
+  document.getElementById('networkExplain').textContent=labels[i];
+  const pos=[
+   ['4%','20%'],['78%','20%'],['42%','49%'],['78%','82%'],['4%','82%']
+  ][i];
+  packet.style.animation='none';
+  packet.style.left=pos[0];packet.style.top=pos[1];
+  packet.offsetHeight;
+  packet.style.animation='travel 1.2s linear';
+  i++;
+  if(i<nodes.length)netTimer=setTimeout(next,1300);
+  else netTimer=setTimeout(()=>{packet.style.display='none'},1300);
+ }
+ next();
+}
+
+// Grafik ma'lumot
+function chartDemo(n,value){
+ document.getElementById('chartExplain').textContent=
+  'Tanlangan ustun '+n+'. Namunaviy ko‘rsatkich: '+value+'%. Grafik ma’lumotlarni balandlik orqali solishtirishga yordam beradi.';
+}
+
+// Yakuniy mahsulot demo
+function toggleTask(button){
+ const done=button.dataset.done!=='yes';
+ button.dataset.done=done?'yes':'no';
+ button.textContent=done?'✓ Bajarildi':'Bajarildi?';
+ const card=button.parentElement;
+ card.style.background=done?'#d5f9e5':'#e9ddff';
+ card.style.transform=done?'translateX(5px)':'translateX(0)';
+ card.querySelector('span').style.textDecoration=done?'line-through':'none';
+ card.querySelector('span').style.opacity=done?'.55':'1';
+}
+
+// Video tanlash
+let videoURL=null;
+document.getElementById('videoInput').addEventListener('change',e=>{
+ const file=e.target.files[0];
+ if(!file)return;
+ if(videoURL)URL.revokeObjectURL(videoURL);
+ videoURL=URL.createObjectURL(file);
+ const video=document.getElementById('finalVideo');
+ video.src=videoURL;
+ video.hidden=false;
+ document.getElementById('videoPlaceholder').hidden=true;
+});
+go(0);
+</script>
+</body>
+</html>
